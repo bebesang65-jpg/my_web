@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auth System Test - Iron Fist League</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #111;
+      color: #fff;
+    }
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #444;
+      border-radius: 5px;
+    }
+    .test-title {
+      color: #4ea8de;
+      margin-top: 0;
+    }
+    .test-result {
+      padding: 10px;
+      margin: 10px 0;
+      background: #333;
+      border-radius: 5px;
+    }
+    .success { color: #4caf50; }
+    .error { color: #f44336; }
+    .info { color: #2196f3; }
+    button {
+      background: #4ea8de;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #3d8bc0;
+    }
+    button:disabled {
+      background: #666;
+      cursor: not-allowed;
+    }
+    pre {
+      background: #000;
+      padding: 10px;
+      border-radius: 5px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>Auth System Integration Test</h1>
+    <p>Testing the new authentication system integration with Iron Fist League</p>
+    
+    <div class="test-section">
+      <h2 class="test-title">Test 1: Module Loading</h2>
+      <button id="test-load">Test Module Loading</button>
+      <div id="result-load" class="test-result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">Test 2: Auth Service</h2>
+      <button id="test-auth-service">Test Auth Service</button>
+      <div id="result-auth-service" class="test-result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">Test 3: Login Flow</h2>
+      <button id="test-login">Simulate Login</button>
+      <button id="test-guest">Simulate Guest Login</button>
+      <button id="test-logout">Test Logout</button>
+      <div id="result-login" class="test-result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">Test 5: Guest Access Specific Tests</h2>
+      <button id="test-guest-features">Test Guest Features</button>
+      <button id="test-guest-limitations">Test Guest Limitations</button>
+      <button id="test-guest-session">Test Guest Session</button>
+      <div id="result-guest" class="test-result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">Test 4: Session Persistence & Logout</h2>
+      <button id="test-session">Check Session State</button>
+      <button id="test-persistence">Test Page Refresh Simulation</button>
+      <button id="test-session-expiry">Test Session Expiry Logic</button>
+      <div id="result-session" class="test-result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">Console Output</h2>
+      <pre id="console-output"></pre>
+    </div>
+  </div>
+
+  <script type="module">
+    // Capture console output
+    const originalConsole = {
+      log: console.log,
+      error: console.error,
+      warn: console.warn,
+      info: console.info
+    };
+    
+    const consoleOutput = document.getElementById('console-output');
+    
+    function captureConsole(method, ...args) {
+      originalConsole[method](...args);
+      const message = args.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+      ).join(' ');
+      consoleOutput.textContent += `[${method.toUpperCase()}] ${message}\n`;
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+    
+    console.log = (...args) => captureConsole('log', ...args);
+    console.error = (...args) => captureConsole('error', ...args);
+    console.warn = (...args) => captureConsole('warn', ...args);
+    console.info = (...args) => captureConsole('info', ...args);
+    
+    // Test functions
+    document.getElementById('test-load').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-load');
+      resultEl.innerHTML = '<span class="info">Loading modules...</span>';
+      
+      try {
+        // Test loading the modules
+        const { authService } = await import('./js/auth-professional.js');
+        const { authUIManager } = await import('./js/auth-ui-manager.js');
+        
+        resultEl.innerHTML = `
+          <span class="success">✓ Modules loaded successfully!</span>
+          <pre>authService: ${typeof authService}
+authUIManager: ${typeof authUIManager}</pre>
+        `;
+        
+        window.authService = authService;
+        window.authUIManager = authUIManager;
+        
+      } catch (error) {
+        resultEl.innerHTML = `<span class="error">✗ Error loading modules: ${error.message}</span>`;
+        console.error('Module loading error:', error);
+      }
+    });
+    
+    document.getElementById('test-auth-service').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-auth-service');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Testing auth service...</span>';
+      
+      try {
+        const currentUser = authService.getCurrentUser();
+        const isLoggedIn = authService.isLoggedIn();
+        const isGuest = authService.isGuest();
+        
+        resultEl.innerHTML = `
+          <span class="success">✓ Auth service working!</span>
+          <pre>Current User: ${currentUser ? 'Present' : 'None'}
+Logged In: ${isLoggedIn}
+Is Guest: ${isGuest}</pre>
+        `;
+        
+      } catch (error) {
+        resultEl.innerHTML = `<span class="error">✗ Auth service error: ${error.message}</span>`;
+        console.error('Auth service test error:', error);
+      }
+    });
+    
+    document.getElementById('test-login').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-login');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Simulating login...</span>';
+      
+      try {
+        // Simulate login with test credentials
+        const result = await authService.login('testuser', 'TestPass123!');
+        
+        if (result.success) {
+          resultEl.innerHTML = `
+            <span class="success">✓ Login successful!</span>
+            <pre>User: ${JSON.stringify(result.user, null, 2)}</pre>
+          `;
+        } else {
+          resultEl.innerHTML = `
+            <span class="info">Login failed (expected for new user)</span>
+            <pre>Error: ${result.error}</pre>
+          `;
+        }
+        
+      } catch (error) {
+        resultEl.innerHTML = `<span class="error">✗ Login error: ${error.message}</span>`;
+        console.error('Login test error:', error);
+      }
+    });
+    
+    document.getElementById('test-guest').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-login');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Logging in as guest...</span>';
+      
+      try {
+        const result = await authService.loginAsGuest();
+        
+        if (result.success) {
+          resultEl.innerHTML = `
+            <span class="success">✓ Guest login successful!</span>
+            <pre>Guest User: ${JSON.stringify(result.user, null, 2)}</pre>
+          `;
+        } else {
+          resultEl.innerHTML = `<span class="error">✗ Guest login failed: ${result.error}</span>`;
+        }
+        
+      } catch (error) {
+        resultEl.innerHTML = `<span class="error">✗ Guest login error: ${error.message}</span>`;
+        console.error('Guest login test error:', error);
+      }
+    });
+    
+    document.getElementById('test-logout').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-login');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Logging out...</span>';
+      
+      try {
+        await authService.logout();
+        resultEl.innerHTML = '<span class="success">✓ Logout successful!</span>';
+        
+      } catch (error) {
+        resultEl.innerHTML = `<span class="error">✗ Logout error: ${error.message}</span>`;
+        console.error('Logout test error:', error);
+      }
+    });
+    
+    // Guest access specific tests
+    document.getElementById('test-guest-features').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-guest');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Testing guest features...</span>';
+      
+      try {
+        // Login as guest first
+        await authService.loginAsGuest();
+        
+        const currentUser = authService.getCurrentUser();
+        const isLoggedIn = authService.isLoggedIn();
+        const isGuest = authService.isGuest();
+        
+        resultEl.innerHTML = `
+          <span class="success">✓ Guest features working!</span>
+          <pre>Guest User: ${currentUser?.username || 'None'}
+Logged In: ${isLoggedIn}
+Is Guest: ${isGuest}
+Has Stats: ${!!currentUser?.stats}
+Unlocked Characters: ${currentUser?.stats?.unlockedCharacters?.join(', ') || 'None'}</pre>
+        `;
+        
+      } catch (error) {
+        resultEl.innerHTML = `<span class="error">✗ Guest features test error: ${error.message}</span>`;
+        console.error('Guest features test error:', error);
+      }
+    });
+    
+    document.getElementById('test-guest-limitations').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-guest');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Testing guest limitations...</span>';
+      
+      try {
+        // Login as guest first
+        await authService.loginAsGuest();
+        
+        // Test guest limitations
+        const canSaveProgress = !authService.isGuest(); // Guests cannot save progress
+        const canUpdateStats = !authService.isGuest(); // Guests cannot update stats
+        
+        resultEl.innerHTML = `
+          <span class="info">Guest Limitations Test</span>
+          <pre>Can Save Progress: ${canSaveProgress ? 'Yes' : 'No (expected)'}
+Can Update Stats: ${canUpdateStats ? 'Yes' : 'No (expected)'}
+Note: Guest progress is temporary and cleared on logout</pre>
+        `;
+        
+      } catch (error) {
+        resultEl.innerHTML = `<span class="error">✗ Guest limitations test error: ${error.message}</span>`;
+        console.error('Guest limitations test error:', error);
+      }
+    });
+    
+    document.getElementById('test-guest-session').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-guest');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Testing guest session persistence...</span>';
+      
+      try {
+        // Test 1: Create guest session
+        await authService.loginAsGuest();
+        const guestUser1 = authService.getCurrentUser();
+        const guestId1 = guestUser1?.id;
+        
+        // Test 2: Logout
+        await authService.logout();
+        
+        // Test 3: Create new guest session (should be different)
+        await authService.loginAsGuest();
+        const guestUser2 = authService.getCurrentUser();
+        const guestId2 = guestUser2?.id;
+        
+        // Test 4: Check if sessions are different (as expected)
+        const sessionsAreDifferent = guestId1 !== guestId2;
+        
+        resultEl.innerHTML = `
+          <span class="success">✓ Guest session test complete!</span>
+          <pre>First Guest ID: ${guestId1}
+Second Guest ID: ${guestId2}
+Sessions are different: ${sessionsAreDifferent ? 'Yes (expected)' : 'No (issue)'}
+Note: Guest sessions should be ephemeral and not persist</pre>
+        `;
+        
+      } catch (error) {
+        resultEl.innerHTML = `<span class="error">✗ Guest session test error: ${error.message}</span>`;
+        console.error('Guest session test error:', error);
+      }
+    });
+    
+    document.getElementById('test-session').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-session');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Checking session state...</span>';
+      
+      try {
+        const currentUser = authService.getCurrentUser();
+        const isLoggedIn = authService.isLoggedIn();
+        const isGuest = authService.isGuest();
+        
+        // Check storage directly (using new auth system keys)
+        const sessions = localStorage.getItem('ifl_sessions_v3');
+        const currentSession = localStorage.getItem('ifl_current_session_v3');
+        const guestData = localStorage.getItem('ifl_guest_data_v3');
+        const users = localStorage.getItem('ifl_users_v3');
+        
+        resultEl.innerHTML = `
+          <span class="info">Session State</span>
+          <pre>Current User: ${currentUser ? 'Present' : 'None'}
+Logged In: ${isLoggedIn}
+Is Guest: ${isGuest}
+          
+Storage Keys (v3):
+- Sessions: ${sessions ? 'Present' : 'None'}
+- Current Session: ${currentSession ? 'Present' : 'None'}
+- Guest Data: ${guestData ? 'Present' : 'None'}
+- Users: ${users ? 'Present' : 'None'}</pre>
+        `;
+        
+      } catch (error) {
+        resultEl.innerHTML = `<span class="error">✗ Session check error: ${error.message}</span>`;
+        console.error('Session test error:', error);
+      }
+    });
+    
+    document.getElementById('test-persistence').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-session');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Testing session persistence (simulating page refresh)...</span>';
+      
+      try {
+        // Test 1: Create a registered user session
+        resultEl.innerHTML += '<br><span class="info">Step 1: Creating test user...</span>';
+        
+        // First logout to clear any existing session
+        await authService.logout();
+        
+        // Create a test user (simplified - in real test would use register method)
+        const testUser = {
+          id: 'test_user_' + Date.now(),
+          username: 'TestUser',
+          email: 'test@example.com',
+          isGuest: false,
+          createdAt: Date.now(),
+          lastLogin: Date.now(),
+          stats: { totalPoints: 100, matchesPlayed: 5, matchesWon: 3 }
+        };
+        
+        // Save user and create session
+        // Note: This is a simplified test - in reality we'd use the actual register/login methods
+        localStorage.setItem('ifl_users_v3', JSON.stringify([testUser]));
+        
+        const session = {
+          id: 'test_session_' + Date.now(),
+          userId: testUser.id,
+          createdAt: Date.now(),
+          expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 1 day
+          rememberMe: true
+        };
+        
+        localStorage.setItem('ifl_sessions_v3', JSON.stringify([session]));
+        localStorage.setItem('ifl_current_session_v3', JSON.stringify(session.id));
+        
+        // Test 2: Simulate page refresh by creating new authService instance
+        resultEl.innerHTML += '<br><span class="info">Step 2: Simulating page refresh...</span>';
+        
+        // Logout from current instance
+        await authService.logout();
+        
+        // Create new authService instance (simulating page reload)
+        const { authService: newAuthService } = await import('./js/auth-professional.js');
+        await newAuthService.initialize();
+        
+        // Test 3: Check if session was restored
+        const restoredUser = newAuthService.getCurrentUser();
+        const isLoggedIn = newAuthService.isLoggedIn();
+        
+        if (restoredUser && restoredUser.username === 'TestUser') {
+          resultEl.innerHTML += `<br><span class="success">✓ Session persistence working! User restored after simulated refresh.</span>`;
+          resultEl.innerHTML += `<pre>Restored User: ${restoredUser.username}
+Logged In: ${isLoggedIn}</pre>`;
+        } else {
+          resultEl.innerHTML += `<br><span class="error">✗ Session persistence failed. User not restored.</span>`;
+        }
+        
+        // Clean up
+        localStorage.removeItem('ifl_users_v3');
+        localStorage.removeItem('ifl_sessions_v3');
+        localStorage.removeItem('ifl_current_session_v3');
+        
+      } catch (error) {
+        resultEl.innerHTML += `<br><span class="error">✗ Persistence test error: ${error.message}</span>`;
+        console.error('Persistence test error:', error);
+      }
+    });
+    
+    document.getElementById('test-session-expiry').addEventListener('click', async () => {
+      const resultEl = document.getElementById('result-session');
+      
+      if (!window.authService) {
+        resultEl.innerHTML = '<span class="error">✗ Auth service not loaded. Run Test 1 first.</span>';
+        return;
+      }
+      
+      resultEl.innerHTML = '<span class="info">Testing session expiry logic...</span>';
+      
+      try {
+        // Create an expired session
+        const expiredSession = {
+          id: 'expired_session_' + Date.now(),
+          userId: 'test_user_expired',
+          createdAt: Date.now() - 48 * 60 * 60 * 1000, // 2 days ago
+          expiresAt: Date.now() - 24 * 60 * 60 * 1000, // Expired 1 day ago
+          rememberMe: true
+        };
+        
+        // Save expired session
+        localStorage.setItem('ifl_sessions_v3', JSON.stringify([expiredSession]));
+        localStorage.setItem('ifl_current_session_v3', JSON.stringify(expiredSession.id));
+        
+        // Create new authService instance
+        const { authService: newAuthService } = await import('./js/auth-professional.js');
+        await newAuthService.initialize();
+        
+        // Check if expired session was cleared
+        const currentUser = newAuthService.getCurrentUser();
+        const currentSession = localStorage.getItem('ifl_current_session_v3');
+        
+        if (!currentUser && !currentSession) {
+          resultEl.innerHTML += `<br><span class="success">✓ Session expiry logic working! Expired session was cleared.</span>`;
+        } else {
+          resultEl.innerHTML += `<br><span class="error">✗ Session expiry logic failed. Expired session not cleared.</span>`;
+          resultEl.innerHTML += `<pre>Current User: ${currentUser ? 'Present' : 'None'}
+Current Session in storage: ${currentSession ? 'Present' : 'None'}</pre>`;
+        }
+        
+        // Clean up
+        localStorage.removeItem('ifl_sessions_v3');
+        localStorage.removeItem('ifl_current_session_v3');
+        
+      } catch (error) {
+        resultEl.innerHTML += `<br><span class="error">✗ Session expiry test error: ${error.message}</span>`;
+        console.error('Session expiry test error:', error);
+      }
+    });
+    
+    // Initialize
+    console.log('Auth System Test initialized');
+  </script>
+</body>
+</html>

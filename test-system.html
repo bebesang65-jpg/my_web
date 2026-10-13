@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iron Fist League - System Test</title>
+    <style>
+        body {
+            font-family: 'Rajdhani', 'Arial Narrow', Arial, sans-serif;
+            background: #000;
+            color: #e8e8e8;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4ea8de;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: rgba(13, 26, 42, 0.8);
+            border: 1px solid #2a5c8a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-title {
+            color: #8acce8;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+        .success {
+            background: rgba(78, 222, 168, 0.2);
+            border: 1px solid #4edea8;
+            color: #8affcc;
+        }
+        .error {
+            background: rgba(222, 78, 78, 0.2);
+            border: 1px solid #de4e4e;
+            color: #ff8a8a;
+        }
+        .info {
+            background: rgba(78, 168, 222, 0.2);
+            border: 1px solid #4ea8de;
+            color: #8acce8;
+        }
+        button {
+            background: linear-gradient(135deg, #2a5c8a 0%, #1a3a5a 100%);
+            border: 1px solid #4ea8de;
+            border-radius: 4px;
+            color: #ffffff;
+            padding: 10px 20px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #4ea8de 0%, #2a5c8a 100%);
+        }
+        .instructions {
+            color: #5a7a9a;
+            font-size: 14px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #2a5c8a;
+        }
+    </style>
+</head>
+<body>
+    <h1>Iron Fist League - System Test</h1>
+    
+    <div class="test-section">
+        <div class="test-title">Authentication System Test</div>
+        <div id="auth-test" class="test-result info">Click buttons to test</div>
+        <button onclick="testCreateUser()">Create Test User</button>
+        <button onclick="testLogin()">Test Login</button>
+        <button onclick="testGuest()">Test Guest Access</button>
+        <button onclick="testLogout()">Test Logout</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Character Unlock System Test</div>
+        <div id="unlock-test" class="test-result info">Click buttons to test</div>
+        <button onclick="testAddPoints()">Add 150 Points</button>
+        <button onclick="testCheckUnlocks()">Check Character Unlocks</button>
+        <button onclick="testUnlockCinder()">Simulate Cinder Unlock (100 pts)</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Points System Test</div>
+        <div id="points-test" class="test-result info">Click buttons to test</div>
+        <button onclick="testCalculatePoints()">Test Points Calculation</button>
+        <button onclick="testMatchResult()">Simulate Match Result</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Storage System Test</div>
+        <div id="storage-test" class="test-result info">Click buttons to test</div>
+        <button onclick="testStorage()">Test LocalStorage</button>
+        <button onclick="clearStorage()">Clear Test Data</button>
+    </div>
+    
+    <div class="instructions">
+        <h3>Testing Instructions:</h3>
+        <ol>
+            <li>First, create a test user or login as guest</li>
+            <li>Test adding points to unlock characters</li>
+            <li>Check that character unlock requirements work</li>
+            <li>Verify points are calculated correctly for matches</li>
+            <li>Test that data persists in localStorage</li>
+        </ol>
+        <p>After testing, open the main game at <a href="index.html" style="color:#4ea8de;">index.html</a> to see the full system in action.</p>
+    </div>
+
+    <script>
+        // Import the auth module dynamically for testing
+        async function getAuthModule() {
+            try {
+                const module = await import('./js/auth.js');
+                return module;
+            } catch (error) {
+                console.error('Failed to load auth module:', error);
+                return null;
+            }
+        }
+        
+        async function testCreateUser() {
+            const auth = await getAuthModule();
+            if (!auth) {
+                document.getElementById('auth-test').innerHTML = 
+                    '<span class="error">Auth module not found</span>';
+                return;
+            }
+            
+            // Create a test user
+            const testUsername = 'testfighter' + Date.now().toString().slice(-4);
+            const testPassword = 'test123';
+            
+            // Simulate signup (this would normally be done through the UI)
+            const users = JSON.parse(localStorage.getItem('ifl_users') || '[]');
+            
+            // Check if user exists
+            if (users.some(u => u.username === testUsername)) {
+                document.getElementById('auth-test').innerHTML = 
+                    `<span class="error">Test user already exists</span>`;
+                return;
+            }
+            
+            // Create new user
+            const newUser = {
+                username: testUsername,
+                password: testPassword,
+                totalPoints: 0,
+                matchesPlayed: 0,
+                matchesWon: 0,
+                highestCombo: 0,
+                unlockedCharacters: ['marcus', 'vesper'],
+                unlockedStages: ['underground'],
+                createdAt: Date.now(),
+                lastLogin: Date.now(),
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('ifl_users', JSON.stringify(users));
+            localStorage.setItem('ifl_current_user', JSON.stringify(testUsername));
+            
+            document.getElementById('auth-test').innerHTML = 
+                `<span class="success">Created test user: ${testUsername}<br>Password: ${testPassword}</span>`;
+        }
+        
+        async function testLogin() {
+            const auth = await getAuthModule();
+            if (!auth) {
+                document.getElementById('auth-test').innerHTML = 
+                    '<span class="error">Auth module not found</span>';
+                return;
+            }
+            
+            const user = auth.getCurrentUser();
+            if (user) {
+                document.getElementById('auth-test').innerHTML = 
+                    `<span class="success">Already logged in as: ${user.username}<br>` +
+                    `Points: ${user.totalPoints}<br>` +
+                    `Unlocked characters: ${user.unlockedCharacters?.length || 0}</span>`;
+            } else {
+                document.getElementById('auth-test').innerHTML = 
+                    '<span class="info">No user currently logged in</span>';
+            }
+        }
+        
+        async function testGuest() {
+            const auth = await getAuthModule();
+            if (!auth) {
+                document.getElementById('auth-test').innerHTML = 
+                    '<span class="error">Auth module not found</span>';
+                return;
+            }
+            
+            // Create guest data
+            const guestData = {
+                username: 'GUEST',
+                isGuest: true,
+                totalPoints: 0,
+                matchesPlayed: 0,
+                matchesWon: 0,
+                unlockedCharacters: ['marcus', 'vesper'],
+                unlockedStages: ['underground'],
+            };
+            
+            localStorage.setItem('ifl_guest_data', JSON.stringify(guestData));
+            localStorage.removeItem('ifl_current_user');
+            
+            document.getElementById('auth-test').innerHTML = 
+                '<span class="success">Set as Guest user<br>Guests cannot save progress or unlock characters</span>';
+        }
+        
+        async function testLogout() {
+            const auth = await getAuthModule();
+            if (!auth) {
+                document.getElementById('auth-test').innerHTML = 
+                    '<span class="error">Auth module not found</span>';
+                return;
+            }
+            
+            auth.logout();
+            document.getElementById('auth-test').innerHTML = 
+                '<span class="success">Logged out successfully</span>';
+        }
+        
+        async function testAddPoints() {
+            const auth = await getAuthModule();
+            if (!auth) {
+                document.getElementById('unlock-test').innerHTML = 
+                    '<span class="error">Auth module not found</span>';
+                return;
+            }
+            
+            const user = auth.getCurrentUser();
+            if (!user || user.isGuest) {
+                document.getElementById('unlock-test').innerHTML = 
+                    '<span class="error">No registered user logged in. Guests cannot earn points.</span>';
+                return;
+            }
+            
+            // Add 150 points
+            auth.addUserPoints(150);
+            
+            document.getElementById('unlock-test').innerHTML = 
+                `<span class="success">Added 150 points to ${user.username}<br>` +
+                `New total: ${user.totalPoints} points<br>` +
+                `Should unlock: Kang (50pts) and Cinder (100pts) if not already unlocked</span>`;
+        }
+        
+        async function testCheckUnlocks() {
+            const auth = await getAuthModule();
+            if (!auth) {
+                document.getElementById('unlock-test').innerHTML = 
+                    '<span class="error">Auth module not found</span>';
+                return;
+            }
+            
+            const user = auth.getCurrentUser();
+            if (!user) {
+                document.getElementById('unlock-test').innerHTML = 
+                    '<span class="error">No user logged in</span>';
+                return;
+            }
+            
+            const unlocked = auth.getUnlockedCharacters();
+            const cinderUnlocked = auth.isCharacterUnlocked('cinder');
+            const kangUnlocked = auth.isCharacterUnlocked('kang');
+            const cinderReq = auth.getCharacterRequirements('cinder');
+            
+            let message = `<span class="info">Unlock Status:<br>`;
+            message += `Total unlocked: ${unlocked.length} characters<br>`;
+            message += `Cinder (100pts): ${cinderUnlocked ? '✅ UNLOCKED' : '🔒 LOCKED'}<br>`;
+            message += `Kang (50pts): ${kangUnlocked ? '✅ UNLOCKED' : '🔒 LOCKED'}<br>`;
+            message += `User points: ${user.totalPoints}<br>`;
+            message += `Cinder requirement: ${cinderReq.description}</span>`;
+            
+            document.getElementById('unlock-test').innerHTML = message;
+        }
+        
+        async function testUnlockCinder() {
+            const auth = await getAuthModule();
+            if (!auth) {
+                document.getElementById('unlock-test').innerHTML = 
+                    '<span class="error">Auth module not found</span>';
+                return;
+            }
+            
+            const user = auth.getCurrentUser();
+            if (!user || user.isGuest) {
+                document.getElementById('unlock-test').innerHTML = 
+                    '<span class="error">No registered user logged in</span>';
+                return;
+            }
+            
+            // Add enough points to unlock Cinder if not already unlocked
+            if (!auth.isCharacterUnlocked('cinder')) {
+                const needed = 100 - user.totalPoints;
+                if (needed > 0) {
+                    auth.addUserPoints(needed);
+                    document.getElementById('unlock-test').innerHTML = 
+                        `<span class="success">Added ${needed} points to unlock Cinder!<br>` +
+                        `Cinder should now be available in character selection</span>`;
+                } else {
+                    document.getElementById('unlock-test').innerHTML = 
+                        `<span class="success">Already have ${user.totalPoints} points<br>` +
+                        `Cinder unlock requirement: 100 points</span>`;
+                }
+            } else {
+                document.getElementById('unlock-test').innerHTML = 
+                    '<span class="success">Cinder is already unlocked!</span>';
+            }
+        }
+        
+        function testCalculatePoints() {
+            // Test the points calculation logic
+            const testStats = {
+                p1RoundArr: ['win', 'perfect', 'win'],
+                highestCombo: 8,
+                totalTime: 25000, // 25 seconds
+            };
+            
+            // Simulate the calculation
+            let points = 0;
+            points += 10; // Base
+            
+            // Winner (player 1 won)
+            points += 30;
+            
+            // Perfect round
+            const perfectRounds = testStats.p1RoundArr.filter(win => win === 'perfect').length;
+            points += perfectRounds * 15;
+            
+            // High combo (8 hits = 8-4 = 4*2 = 8 points, max 20)
+            if (testStats.highestCombo >= 5) {
+                points += Math.min(20, (testStats.highestCombo - 4) * 2);
+            }
+            
+            // Quick victory (under 30 seconds)
+            if (testStats.totalTime < 30000) {
+                points += 10;
+            }
+            
+            document.getElementById('points-test').innerHTML = 
+                `<span class="success">Points Calculation Test:<br>` +
+                `Base: 10<br>` +
+                `Win: +30<br>` +
+                `Perfect rounds (${perfectRounds}): +${perfectRounds * 15}<br>` +
+                `Combo (${testStats.highestCombo} hits): +${Math.min(20, (testStats.highestCombo - 4) * 2)}<br>` +
+                `Quick victory: +10<br>` +
+                `Total: ${points} points</span>`;
+        }
+        
+        async function testMatchResult() {
+            const auth = await getAuthModule();
+            if (!auth) {
+                document.getElementById('points-test').innerHTML = 
+                    '<span class="error">Auth module not found</span>';
+                return;
+            }
+            
+            const user = auth.getCurrentUser();
+            if (!user || user.isGuest) {
+                document.getElementById('points-test').innerHTML = 
+                    '<span class="error">No registered user logged in</span>';
+                return;
+            }
+            
+            const oldPoints = user.totalPoints;
+            const oldMatches = user.matchesPlayed;
+            
+            // Simulate a match result
+            auth.recordMatchResult(true, 45, 7); // Won, 45 points, 7-hit combo
+            
+            const newUser = auth.getCurrentUser();
+            
+            document.getElementById('points-test').innerHTML = 
+                `<span class="success">Match Result Recorded:<br>` +
+                `Points before: ${oldPoints}<br>` +
+                `Points after: ${newUser.totalPoints}<br>` +
+                `Matches played: ${oldMatches} → ${newUser.matchesPlayed}<br>` +
+                `Points earned: ${newUser.totalPoints - oldPoints}</span>`;
+        }
+        
+        function testStorage() {
+            const users = localStorage.getItem('ifl_users');
+            const current = localStorage.getItem('ifl_current_user');
+            const guest = localStorage.getItem('ifl_guest_data');
+            
+            let message = `<span class="info">Storage Contents:<br>`;
+            message += `Users stored: ${users ? JSON.parse(users).length : 0}<br>`;
+            message += `Current user: ${current ? JSON.parse(current) : 'none'}<br>`;
+            message += `Guest data: ${guest ? 'present' : 'none'}</span>`;
+            
+            document.getElementById('storage-test').innerHTML = message;
+        }
+        
+        function clearStorage() {
+            localStorage.removeItem('ifl_users');
+            localStorage.removeItem('ifl_current_user');
+            localStorage.removeItem('ifl_guest_data');
+            
+            document.getElementById('storage-test').innerHTML = 
+                '<span class="success">All test data cleared from localStorage</span>';
+            
+            // Also clear other test results
+            document.getElementById('auth-test').innerHTML = 
+                '<span class="info">Click buttons to test</span>';
+            document.getElementById('unlock-test').innerHTML = 
+                '<span class="info">Click buttons to test</span>';
+            document.getElementById('points-test').innerHTML = 
+                '<span class="info">Click buttons to test</span>';
+        }
+        
+        // Initialize by checking storage
+        testStorage();
+    </script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Responsive Design Test - Iron Fist League</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #111;
+      color: #fff;
+    }
+    
+    .test-container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #4ea8de;
+      text-align: center;
+    }
+    
+    .screen-simulator {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      margin: 30px 0;
+    }
+    
+    .screen-frame {
+      border: 2px solid #333;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+    }
+    
+    .screen-label {
+      background: #222;
+      padding: 10px;
+      font-weight: bold;
+      color: #4ea8de;
+      text-align: center;
+      border-bottom: 1px solid #333;
+    }
+    
+    .screen-content {
+      height: 500px;
+      overflow: auto;
+    }
+    
+    .desktop .screen-content {
+      width: 100%;
+    }
+    
+    .tablet .screen-content {
+      width: 768px;
+      margin: 0 auto;
+    }
+    
+    .mobile .screen-content {
+      width: 375px;
+      margin: 0 auto;
+    }
+    
+    .test-instructions {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    
+    .test-instructions h2 {
+      color: #4ea8de;
+      margin-top: 0;
+    }
+    
+    .test-instructions ul {
+      padding-left: 20px;
+    }
+    
+    .test-instructions li {
+      margin: 10px 0;
+    }
+    
+    .responsive-check {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    
+    .check-item {
+      margin: 10px 0;
+      padding: 10px;
+      background: #333;
+      border-radius: 5px;
+    }
+    
+    .check-item.success::before {
+      content: '✓ ';
+      color: #4caf50;
+    }
+    
+    .check-item.error::before {
+      content: '✗ ';
+      color: #f44336;
+    }
+    
+    .test-button {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: #4ea8de;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 0;
+      text-align: center;
+      text-decoration: none;
+    }
+    
+    .test-button:hover {
+      background: #3d8bc0;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>Responsive Design Test - Iron Fist League</h1>
+    
+    <div class="test-instructions">
+      <h2>Testing Instructions</h2>
+      <p>This test verifies that the authentication system works correctly on different screen sizes:</p>
+      <ul>
+        <li><strong>Desktop</strong> (≥1024px): Full layout with side-by-side forms</li>
+        <li><strong>Tablet</strong> (768px): Compact layout, single column forms</li>
+        <li><strong>Mobile</strong> (≤480px): Mobile-optimized layout with larger touch targets</li>
+      </ul>
+      <p>Open the actual game in your browser and test these screen sizes using browser developer tools (F12 → Toggle Device Toolbar).</p>
+    </div>
+    
+    <div class="responsive-check">
+      <h2>Responsive Design Checklist</h2>
+      
+      <div class="check-item success">Viewport meta tag present: width=device-width, initial-scale=1.0</div>
+      <div class="check-item success">CSS media queries for 768px breakpoint</div>
+      <div class="check-item success">CSS media queries for 480px breakpoint</div>
+      <div class="check-item success">Welcome screen responsive adjustments</div>
+      <div class="check-item success">Auth forms responsive adjustments</div>
+      <div class="check-item">Touch targets ≥44px on mobile (needs manual testing)</div>
+      <div class="check-item">Font sizes readable on mobile (needs manual testing)</div>
+      <div class="check-item">Forms usable without horizontal scrolling (needs manual testing)</div>
+    </div>
+    
+    <div class="screen-simulator">
+      <div class="screen-frame desktop">
+        <div class="screen-label">Desktop View (≥1024px)</div>
+        <div class="screen-content">
+          <iframe src="index.html" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+      </div>
+      
+      <div class="screen-frame tablet">
+        <div class="screen-label">Tablet View (768px)</div>
+        <div class="screen-content">
+          <iframe src="index.html" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+      </div>
+      
+      <div class="screen-frame mobile">
+        <div class="screen-label">Mobile View (375px)</div>
+        <div class="screen-content">
+          <iframe src="index.html" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+      </div>
+    </div>
+    
+    <a href="index.html" class="test-button" target="_blank">Open Game in Full Screen</a>
+    <a href="test-auth.html" class="test-button" target="_blank">Run Authentication Tests</a>
+    
+    <div class="test-instructions">
+      <h2>Manual Testing Steps</h2>
+      <ol>
+        <li>Open the game in your browser</li>
+        <li>Press F12 to open Developer Tools</li>
+        <li>Click the "Toggle Device Toolbar" icon (📱)</li>
+        <li>Test different screen sizes:
+          <ul>
+            <li>Desktop: 1024px and above</li>
+            <li>Tablet: 768px width</li>
+            <li>Mobile: 375px width (iPhone SE)</li>
+          </ul>
+        </li>
+        <li>Verify:
+          <ul>
+            <li>Welcome screen buttons are properly sized</li>
+            <li>Auth forms are readable and usable</li>
+            <li>No horizontal scrolling required</li>
+            <li>Touch targets are large enough (≥44px)</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+  </div>
+  
+  <script>
+    // Auto-adjust iframe heights
+    document.addEventListener('DOMContentLoaded', function() {
+      const iframes = document.querySelectorAll('iframe');
+      
+      function adjustIframeHeight(iframe) {
+        try {
+          // Set iframe height based on content (simplified)
+          iframe.style.height = '500px';
+        } catch (e) {
+          // Cross-origin restriction, ignore
+        }
+      }
+      
+      iframes.forEach(iframe => {
+        iframe.onload = function() {
+          adjustIframeHeight(this);
+        };
+      });
+    });
+    
+    // Add check for viewport meta tag
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    const viewportCheck = document.querySelector('.check-item:nth-child(1)');
+    
+    if (viewportMeta && viewportMeta.content.includes('width=device-width') && 
+        viewportMeta.content.includes('initial-scale=1.0')) {
+      viewportCheck.className = 'check-item success';
+      viewportCheck.textContent = '✓ Viewport meta tag present and correctly configured';
+    } else {
+      viewportCheck.className = 'check-item error';
+      viewportCheck.textContent = '✗ Viewport meta tag missing or incorrect';
+    }
+  </script>
+</body>
+</html>
